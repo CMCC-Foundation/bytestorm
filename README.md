@@ -104,13 +104,10 @@ python src/scaler.py
 
 ```bash
 # Train localization model
-python src/training.py --config src/config/config_localization_model.toml
+mpirun src/training.py --config src/config/config_localization_model.toml --devices GPUS_PER_NODE --num_nodes NUM_NODES
 
 # Train classification model
-python src/training.py --config src/config/config_classification_model.toml
-
-# Or use the provided training script
-bash src/train.sh
+mpirun src/training.py --config src/config/config_classification_model.toml --devices GPUS_PER_NODE --num_nodes NUM_NODES
 ```
 
 ### Inference and Tracking

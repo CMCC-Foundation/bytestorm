@@ -76,8 +76,9 @@ class TCDetectionDatasetWriter():
         rn_X = np.empty(shape=(0, len(self.patch_vars), self.patch_size, self.patch_size), dtype=self.dtype)
         rn_Y = np.empty(shape=(0, len(self.coo_vars), 2), dtype=self.dtype)
         # for each filename in src
-        # filepaths = sorted(glob.glob(os.path.join(self.src_dir, f'{year}*.nc')))
         filepaths = [file for file in sorted(glob.glob(os.path.join(self.src_dir, f'{year}*.nc'))) if int(os.path.basename(file).split('_')[1]) in months]
+        if len(filepaths) == 0:
+            return
         for _, filepath in zip(tqdm(filepaths), filepaths):
             # open the dataset
             ds = xr.load_dataset(filepath)

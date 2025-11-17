@@ -11,7 +11,7 @@ import numpy as np
 import logging
 import os
 import sys
-sys.path.append('./resources/library/tropical_cyclone')
+sys.path.append('./resources/library')
 from tropical_cyclone.diskio import TCDetectionMPIDatasetWriter
 from info import train_years, valid_years
 
@@ -24,7 +24,7 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 
 # directories setup
-main_dir = '../'
+main_dir = './'
 data_dir = os.path.join(main_dir, 'data')
 datasets_dir = os.path.join(data_dir, 'datasets')
 src_data_dir = os.path.join(datasets_dir, 'reanalysis')

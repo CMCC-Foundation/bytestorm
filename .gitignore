@@ -167,7 +167,6 @@ cython_debug/
 
 # ignore files and folders
 prova.ipynb
-data
 logs
 experiments
 backup
