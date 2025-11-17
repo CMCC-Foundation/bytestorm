@@ -1,0 +1,63 @@
+[run]
+seed = 4624
+
+[dir]
+experiment = 'PATH-TO/experiments'
+train = 'PATH-TO/data/datasets/patches/train'
+valid = 'PATH-TO/data/datasets/patches/valid'
+run = 'PATH-TO/experiments/classification_model'
+[dir.scaler]
+    mean = 'PATH-TO/data/datasets/patches/mean_1980_2009.nc'
+    std = 'PATH-TO/data/datasets/patches/std_1980_2009.nc'
+
+[torch]
+matmul_precision = "medium"
+dtype = 'torch.float32'
+
+[lightning]
+accelerator = "cuda"
+precision = "32-true"
+
+[data]
+drivers = ['vo_850', 'msl']
+targets = ['patch_cyclone']
+label_no_cyclone = -1.0
+augmentation = ['lr','ud','rot']
+classify = true
+patches = ['cy','nr','rn']
+
+[model]
+monitor = 'val_loss'
+cls = 'VGG'
+metrics = []
+    [model.args]
+    in_channels = 2
+    out_channels = 1
+    activation = 'nn.ReLU'
+    out_activation = 'nn.Sigmoid'
+    kernel_size = 3
+
+[loss]
+cls = "nn.BCELoss"
+[loss.args]
+
+[optimizer]
+cls = "torch.optim.AdamW"
+    [optimizer.args]
+        lr = 8e-5
+        betas = [0.9, 0.95]
+        weight_decay = 1e-4
+
+[scheduler]
+    [scheduler.warmup]
+        total_iters = 20 # warmup epochs
+        start_factor = 0.0001
+        end_factor = 1.0
+    [scheduler.annealing]
+        eta_min = 5e-8 # minimum learning rate
+
+[train]
+epochs = 150
+batch_size = 8192
+drop_remainder = true
+accumulation_steps = 1
