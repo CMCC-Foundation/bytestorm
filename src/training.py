@@ -35,7 +35,7 @@ warnings.simplefilter("ignore")
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 import sys
-sys.path.append('./resources/library/tropical_cyclone')
+sys.path.append('./resources/library')
 from tropical_cyclone.models import *
 from tropical_cyclone.scaling import StandardScaler
 from tropical_cyclone.dataset import TCPatchDataset
@@ -200,7 +200,11 @@ callbacks = [
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 # init distribution strategy
-strategy = DDPStrategy() if accelerator == 'cuda' else 'auto'
+if device == 'cpu':
+    strategy = 'auto'
+    accelerator = 'auto'
+else:
+    strategy = DDPStrategy() if accelerator == 'cuda' else 'auto'
 
 # initialize trainer
 trainer = Trainer(
@@ -256,11 +260,6 @@ logging.info(f"   Local rank  : {local_rank}")
 
 # init model
 model = model_cls(**model_args)
-try:
-    model.configure_activation_checkpointing()
-except Exception as e:
-    print(f'Exception occurred while configuring activation checkpointing')
-    print(f'    ERROR: {e}')
 
 # init optimizer
 optimizer = optimizer_cls(model.parameters(), **optimizer_args)

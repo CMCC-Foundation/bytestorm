@@ -19,7 +19,7 @@ logging.basicConfig(format="[%(asctime)s] %(levelname)s : %(message)s", level=lo
 logging.info(f'Program started')
 
 # data directories
-data_dir = 'PATH-TO/data'
+data_dir = './data'
 datasets_dir = os.path.join(data_dir, 'datasets', 'patches', 'train')
 scaler_dir = os.path.join(data_dir, 'datasets', 'patches')
 os.makedirs(scaler_dir, exist_ok=True)

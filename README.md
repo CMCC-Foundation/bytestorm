@@ -94,7 +94,7 @@ pip install -r requirements.txt
 python src/era5_download.py
 
 # Build dataset patches
-python src/build_dataset_patches.py
+mpirun -np NUM_PROCS python -u src/build_dataset_patches.py
 
 # Compute standard scaler
 python src/scaler.py
@@ -103,12 +103,23 @@ python src/scaler.py
 ### Training
 
 ```bash
+# NUM_PROCS = GPUS_PER_NODE * NUM_NODES
+
 # Train localization model
-mpirun src/training.py --config src/config/config_localization_model.toml --devices GPUS_PER_NODE --num_nodes NUM_NODES
+mpirun -np NUM_PROCS python src/training.py --config src/config/config_localization_model.toml --devices GPUS_PER_NODE --num_nodes NUM_NODES
 
 # Train classification model
-mpirun src/training.py --config src/config/config_classification_model.toml --devices GPUS_PER_NODE --num_nodes NUM_NODES
+mpirun -np NUM_PROCS python src/training.py --config src/config/config_classification_model.toml --devices GPUS_PER_NODE --num_nodes NUM_NODES
 ```
+
+A very basic Training Example is provided in the `src/config` folder and can be launched on 1 CPU, using the following command:
+```bash
+cd bytestorm
+
+mpirun -np 1 python src/training.py --config src/config/example.toml --devices 1 --num_nodes 1
+```
+
+It leverages the sample patches that we provide in zarr format, located in `data/datasets/example_patches`. 
 
 ### Inference and Tracking
 
@@ -168,6 +179,10 @@ ByteStorm: A Multi-Step Data-Driven Approach for Tropical Cyclone Detection and 
 ## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## Funding
+- This work was supported in part by the **interTwin** project. interTwin has received funding from Horizon Europe under grant agreement No 101058386.
+- This repository is based on the official interTwin repository available at at: https://github.com/CMCC-Foundation/ml-tropical-cyclones-detection
 
 ## Acknowledgments
 
