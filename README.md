@@ -9,12 +9,12 @@ ByteStorm is a comprehensive framework for detecting and tracking tropical cyclo
 
 ## Authors
 
-- **Davide Donno** ([davide.donno@unisalento.it](mailto:davide.donno@unisalento.it)) [1,2]
-- **Donatello Elia** ([donatello.elia@cmcc.it](mailto:donatello.elia@cmcc.it)) [2]
-- **Gabriele Accarino** ([ga2673@columbia.edu](mailto:ga2673@columbia.edu)) [2,3]
-- **Marco De Carlo** ([marco.decarlo@cmcc.it](mailto:marco.decarlo@cmcc.it)) [2]
-- **Enrico Scoccimarro** ([enrico.scoccimarro@cmcc.it](mailto:enrico.scoccimarro@cmcc.it)) [2]
-- **Silvio Gualdi** ([silvio.gualdi@cmcc.it](mailto:silvio.gualdi@cmcc.it)) [2]
+- Davide Donno [1,2]
+- Donatello Elia [2]
+- Gabriele Accarino [2,3]
+- Marco De Carlo [2]
+- Enrico Scoccimarro [2]
+- Silvio Gualdi [2]
 
 ### Affiliations
 
