@@ -6,6 +6,24 @@ This is the official repository for the paper entitled: "**ByteStorm: a data-dri
 
 ByteStorm is a comprehensive framework for detecting and tracking tropical cyclones (TCs) across East- and West- North Pacific (ENP and WNP) basins basins using Machine Learning and Computer Vision techniques. The system combines two Deep Learning models for TC *classification* and *localization* with the BYTE tracking algorithm to generate continuous, accurate TC tracks over time.
 
+
+## Authors
+
+- **Davide Donno** ([davide.donno@unisalento.it](mailto:davide.donno@unisalento.it)) [1,2]
+- **Donatello Elia** ([donatello.elia@cmcc.it](mailto:donatello.elia@cmcc.it)) [2]
+- **Gabriele Accarino** ([ga2673@columbia.edu](mailto:ga2673@columbia.edu)) [2,3]
+- **Marco De Carlo** ([marco.decarlo@cmcc.it](mailto:marco.decarlo@cmcc.it)) [2]
+- **Enrico Scoccimarro** ([enrico.scoccimarro@cmcc.it](mailto:enrico.scoccimarro@cmcc.it)) [2]
+- **Silvio Gualdi** ([silvio.gualdi@cmcc.it](mailto:silvio.gualdi@cmcc.it)) [2]
+
+### Affiliations
+
+1. Department of Engineering for Innovation, University of Salento, Lecce, Apulia, Italy
+
+2. Euro-Mediterranean Centre on Climate Change (CMCC)Foundation, Italy
+
+3. Department of Earth and Environmental Engineering, Columbia University, New York, NY, USA
+
 ## Architecture
 
 ByteStorm follows a **VGG**-based backbone architecture with specialized adaptations for tropical cyclone tracking:
@@ -168,21 +186,15 @@ If you use ByteStorm in your research, please cite:
 ByteStorm: A Multi-Step Data-Driven Approach for Tropical Cyclone Detection and Tracking
 ```
 
-## Contributors
-
-**Advanced Digital Innovation Centre (ADIC)** - CMCC Foundation
-
-- **Davide Donno** ([davide.donno@cmcc.it](mailto:davide.donno@cmcc.it))
-- **Marco De Carlo** ([marco.decarlo@cmcc.it](mailto:marco.decarlo@cmcc.it))
-- **Donatello Elia** ([donatello.elia@cmcc.it](mailto:donatello.elia@cmcc.it))
-
 ## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ## Funding
+
 - This work was supported in part by the **interTwin** project. interTwin has received funding from Horizon Europe under grant agreement No 101058386.
-- This repository is based on the official interTwin repository available at at: https://github.com/CMCC-Foundation/ml-tropical-cyclones-detection
+
+- This repository is based on the ML TC detection library available at: https://github.com/CMCC-Foundation/ml-tropical-cyclones-detection
 
 ## Acknowledgments
 
