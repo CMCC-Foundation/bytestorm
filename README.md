@@ -1,6 +1,6 @@
 # ByteStorm
 
-This is the official repository for the paper entitled: "**ByteStorm: a data-driven, multi-step approach for Tropical Cyclone detection and tracking**", using deep learning and the BYTE tracking algorithm.
+This is the official repository for the paper entitled: "**ByteStorm: a multi-step data-driven approach for Tropical Cyclones detection and tracking**", using deep learning and the BYTE tracking algorithm.
 
 ## Overview
 
