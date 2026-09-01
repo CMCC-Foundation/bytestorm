@@ -1,11 +1,5 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# ByteStorm Library for Tropical Cyclone Tracking           #
-# Copyright (c) 2025 CMCC Foundation                        #
-# Licensed under The GPLv3 License [see LICENSE for details]#
-# Written by Davide Donno                                   #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 import numpy as np
+
 
 def get_global_rowcol_coords(lats, lons, latlon):
     """
@@ -14,6 +8,7 @@ def get_global_rowcol_coords(lats, lons, latlon):
 
     """
     return np.array([[np.argwhere(lats==l)[0][0] for l in latlon[:,0]],[np.argwhere(lons==l)[0][0] for l in latlon[:,1]]]).transpose()
+
 
 def from_local_to_global(patch_id, patch_row_col, patch_size=40):
     """
@@ -37,3 +32,4 @@ def from_local_to_global(patch_id, patch_row_col, patch_size=40):
     global_row = patch_size * patch_id[0] + patch_row_col[0]
     global_col = patch_size * patch_id[1] + patch_row_col[1]
     return (int(global_row), int(global_col))
+

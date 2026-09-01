@@ -1,25 +1,19 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# ByteStorm Library for Tropical Cyclone Tracking           #
-# Copyright (c) 2025 CMCC Foundation                        #
-# Licensed under The GPLv3 License [see LICENSE for details]#
-# Written by Davide Donno                                   #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 import itertools
 import random
 
 
+
 def get_nocyclones_patches(dataset, cyclone_patch_ids, patch_size=40):
     """
-    Given a dataset and a list of coordinates of patches containing cyclones, 
-    we get a list of patches that do not contain a cyclone.
+    Dato un dataset ed una lista di coordinate delle patch contenenti cicloni, otteniamo una lista 
+    di patch che invece non contengono un ciclone.
     
     Parameters
     ----------
     dataset:
-        It is the xr.Dataset from a timestep containing the map to be divided into patches.
+        E' il xr.Dataset da un timestep contentente la mappa da suddividere in patch.
     patch_cyclone_ids:
-        It is a list of row-column coordinates of the map patches.
+        E' una lista di coordinate riga-colonna delle patch della mappa.
 
     """
     row_blocks = len(dataset.lat.data) // patch_size
@@ -41,16 +35,17 @@ def get_nocyclones_patches(dataset, cyclone_patch_ids, patch_size=40):
     return nocyclone_patch_ids
 
 
+
 def get_all_adjacent_patches(dataset, patch_cyclone_ids, patch_size=40):
     """
-    Given a list of id patches happy cyclones, you get all the patches in the neighborhood.
+    Data una lista di patch id contenti cicloni, si ottengono tutte le patch nell'intorno.
 
     Parameters
     ----------
     dataset:
-        It is the xr.Dataset from a timestep containing the map to be divided into patches.
+        E' il xr.Dataset da un timestep contentente la mappa da suddividere in patch.
     patch_cyclone_ids:
-        It is a list of row-column coordinates of the map patches.
+        E' una lista di coordinate riga-colonna delle patch della mappa.
 
     """
     row_blocks = len(dataset.lat.data) // patch_size
@@ -68,19 +63,19 @@ def get_all_adjacent_patches(dataset, patch_cyclone_ids, patch_size=40):
     return all_adjacent_ids
 
 
+
 def get_nearest_adjacent_patches(dataset, patch_cyclone_ids, patch_cyclone_positions, patch_size=40):
     """
-    Given a list of patches ids containing cyclones and their local locations (in the patch), 
-    the three patches closest to the cyclone are obtained.
+    Data una lista di patch id contenti cicloni e delle relative posizioni locali (nella patch), si ottengono le tre patch più vicine al ciclone.
 
     Parameters
     ----------
     dataset:
-        It is the xr.Dataset from a timestep containing the map to be divided into patches.
+        E' il xr.Dataset da un timestep contentente la mappa da suddividere in patch.
     patch_cyclone_ids:
-        It is a list of row-column coordinates of the map patches.
+        E' una lista di coordinate riga-colonna delle patch della mappa.
     patch_cyclone_positions:
-        It is a list of row-column coordinates that identify the position of the cyclone within the relevant patch.
+        E' una lista di coordinate riga-colonna che identificano la posizione del ciclone all'interno della relativa patch.
 
     """
     def is_first_quadrant(y, x, half_patch_size):
@@ -120,12 +115,12 @@ def get_nearest_adjacent_patches(dataset, patch_cyclone_ids, patch_cyclone_posit
     return nearest_patch_ids
 
 
+
 def get_random_patches(dataset, patch_cyclone_ids, patch_size=40):
     """
-    Given a dataset and a list of coordinates of patches containing cyclones, 
-    we obtain a list (of length equal to the number of cyclones present in the sample) 
-    of random patches that are not located in the neighborhood of the considered patch.
-
+    Dato un dataset ed una lista di coordinate delle patch contenenti cicloni, otteniamo una lista (di lunghezza uguale 
+    al numero di cicloni presente nel campione) di patch random che non si trovano nell'intorno della patch considerata.
+    
     Parameters
     ----------
     dataset:

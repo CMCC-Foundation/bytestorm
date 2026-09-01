@@ -1,17 +1,10 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# 
-# BYTE algorithm, taken and adapted from
-# https://github.com/FoundationVision/ByteTrack/tree/main
-# 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 import cv2
 import numpy as np
 import scipy
 import lap
 from scipy.spatial.distance import cdist
 
-from cython_bbox import bbox_overlaps as bbox_ious
+# from cython_bbox import bbox_overlaps as bbox_ious
 from tropical_cyclone._cyclone.tracker import kalman_filter
 import time
 

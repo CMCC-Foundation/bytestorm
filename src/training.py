@@ -100,8 +100,7 @@ seed = config.run.seed
 run_dir = config.dir.run
 experiment_dir = config.dir.experiment
 checkpoint = config.dir.checkpoint if hasattr(config.dir, 'checkpoint') else None
-train_src = config.dir.train
-valid_src = config.dir.valid
+dataset_src = config.dir.dataset
 mean_src = config.dir.scaler.mean
 std_src = config.dir.scaler.std
 
@@ -135,6 +134,7 @@ scheduler_annealing_args = config.scheduler.annealing
 # data
 drivers = config.data.drivers
 targets = config.data.targets
+basins = config.data.basins
 label_no_cyclone = config.data.label_no_cyclone if hasattr(config.data, 'label_no_cyclone') else None
 mag = config.data.mag if hasattr(config.data, 'mag') else 1.0
 classify = config.data.classify if hasattr(config.data, 'classify') else False
@@ -184,12 +184,12 @@ shutil.copy(src=args.config, dst=os.path.join(run_dir, 'configuration.toml'))
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 # load scaler
-x_scaler = StandardScaler(mean_src=mean_src, std_src=std_src, drivers=drivers)
+scaler = StandardScaler(mean_src=mean_src, std_src=std_src, drivers=drivers)
 
 # define user callbacks
 callbacks = [
-    ModelCheckpoint(checkpoint_dir, "epoch-{epoch:04d}-val_loss-{val_loss:.2f}", monitor='val_loss', save_last=True, save_top_k=5, auto_insert_metric_name=False), 
-    BenchmarkCSV(filename=benchmark_csv), 
+    ModelCheckpoint(checkpoint_dir, "epoch-{epoch:04d}-val_loss-{val_loss:.2f}", monitor='val_loss/dataloader_idx_0', save_last=True, save_top_k=5, auto_insert_metric_name=False),
+    BenchmarkCSV(filename=benchmark_csv),
 ]
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -200,11 +200,7 @@ callbacks = [
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 # init distribution strategy
-if device == 'cpu':
-    strategy = 'auto'
-    accelerator = 'auto'
-else:
-    strategy = DDPStrategy() if accelerator == 'cuda' else 'auto'
+strategy = DDPStrategy() if accelerator == 'cuda' else 'auto'
 
 # initialize trainer
 trainer = Trainer(
@@ -259,7 +255,17 @@ logging.info(f"   Local rank  : {local_rank}")
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 # init model
-model = model_cls(**model_args)
+model: nn.Module = model_cls(**model_args)
+if checkpoint is not None:
+    state_dict = torch.load(checkpoint, map_location=device)
+    model.load_state_dict(state_dict["state_dict"])
+    print(f'Model loaded from checkpoint {checkpoint}')
+    logging.info(f'Model loaded from checkpoint {checkpoint}')
+try:
+    model.configure_activation_checkpointing()
+except Exception as e:
+    print(f'Exception occurred while configuring activation checkpointing')
+    print(f'    ERROR: {e}')
 
 # init optimizer
 optimizer = optimizer_cls(model.parameters(), **optimizer_args)
@@ -267,9 +273,9 @@ optimizer = optimizer_cls(model.parameters(), **optimizer_args)
 # init scheduler
 verbose = True if global_rank == 0 else False
 warmup_epochs = scheduler_warmup_args['total_iters']
-warmup = lr_scheduler.LinearLR(optimizer=optimizer, **scheduler_warmup_args, verbose=verbose)
-annealing = lr_scheduler.CosineAnnealingWarmRestarts(optimizer=optimizer, T_0=epochs+1, **scheduler_annealing_args, verbose=verbose)
-scheduler = lr_scheduler.SequentialLR(optimizer=optimizer, schedulers=[warmup, annealing], milestones=[warmup_epochs], verbose=verbose)
+warmup = lr_scheduler.LinearLR(optimizer=optimizer, **scheduler_warmup_args)
+annealing = lr_scheduler.CosineAnnealingWarmRestarts(optimizer=optimizer, T_0=epochs+1, **scheduler_annealing_args)
+scheduler = lr_scheduler.SequentialLR(optimizer=optimizer, schedulers=[warmup, annealing], milestones=[warmup_epochs])
 
 # add attributes to the model
 model.optimizer = optimizer
@@ -292,26 +298,40 @@ logging.info(f'Model and Trainer inizialized')
 #  Load and distribute dataset
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-# init train and validation datasets
-train_dataset = TCPatchDataset(src=train_src, drivers=drivers, targets=targets, scaler=x_scaler, label_no_cyclone=label_no_cyclone, mag=mag, augmentation=augmentation, patches=patches, classify=classify, dtype=dtype)
-valid_dataset = TCPatchDataset(src=valid_src, drivers=drivers, targets=targets, scaler=x_scaler, label_no_cyclone=label_no_cyclone, mag=mag, augmentation=augmentation, patches=patches, classify=classify, dtype=dtype)
+train_loaders = dict()
+valid_loaders = dict()
+for basin in basins:
 
-# log
-logging.info(f'Train and valid datasets inizialized')
+    train_basin_src = os.path.join(dataset_src, basin, 'train')
+    valid_basin_src = os.path.join(dataset_src, basin, 'valid')
 
-# init train and val samplers
-train_sampler = DistributedWeightedSampler(dataset=train_dataset, num_replicas=world_size, rank=global_rank, shuffle=False)
-valid_sampler = DistributedWeightedSampler(dataset=valid_dataset, num_replicas=world_size, rank=global_rank, shuffle=False)
+    # log
+    logging.info(f'Basin {basin} dataset loading')
 
-# log
-logging.info(f'Dataset samplers initialized')
+    # init train and validation datasets
+    train_dataset = TCPatchDataset(src=train_basin_src, drivers=drivers, targets=targets, scaler=scaler, label_no_cyclone=label_no_cyclone, mag=mag, augmentation=augmentation, patches=patches, classify=classify, dtype=dtype)
+    valid_dataset = TCPatchDataset(src=valid_basin_src, drivers=drivers, targets=targets, scaler=scaler, label_no_cyclone=label_no_cyclone, mag=mag, augmentation=augmentation, patches=patches, classify=classify, dtype=dtype)
 
-# load dataloader
-train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=batch_size, drop_last=drop_remainder)
-valid_loader = DataLoader(valid_dataset, sampler=valid_sampler, batch_size=batch_size, drop_last=drop_remainder)
+    # log
+    logging.info(f'   Train and valid datasets inizialized')
 
-# log
-logging.info(f'Dataloaders created')
+    # init train and val samplers
+    train_sampler = DistributedWeightedSampler(dataset=train_dataset, num_replicas=world_size, rank=global_rank, shuffle=False)
+    valid_sampler = DistributedWeightedSampler(dataset=valid_dataset, num_replicas=world_size, rank=global_rank, shuffle=False)
+
+    # log
+    logging.info(f'   Dataset samplers initialized')
+
+    # load dataloader
+    train_loader = DataLoader(train_dataset, sampler=train_sampler, batch_size=batch_size, drop_last=drop_remainder)
+    valid_loader = DataLoader(valid_dataset, sampler=valid_sampler, batch_size=batch_size, drop_last=drop_remainder)
+
+    # log
+    logging.info(f'   Dataloaders created')
+
+    # append the data-loaders
+    train_loaders[basin] = train_loader
+    valid_loaders[basin] = valid_loader
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
@@ -324,7 +344,7 @@ logging.info(f'Dataloaders created')
 logging.info(f'Training the model')
 
 # fit the model
-trainer.fit(model, train_loader, valid_loader, ckpt_path=checkpoint)
+trainer.fit(model, train_loaders, valid_loaders)
 
 # log
 logging.info(f'Model trained')

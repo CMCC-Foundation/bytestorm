@@ -1,10 +1,3 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# ByteStorm Library for Tropical Cyclone Tracking           #
-# Copyright (c) 2025 CMCC Foundation                        #
-# Licensed under The GPLv3 License [see LICENSE for details]#
-# Written by Davide Donno                                   #
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 import warnings
 import numpy as np
 import pandas as pd
@@ -16,9 +9,76 @@ import matplotlib.transforms as transforms
 from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter)
 
 
-def plot_tracks(det_tracks, obs_tracks, lat_range, lon_range, title, outfile=None):
+
+def plot_detections(detections, observations, lat_range, lon_range, outfile=None):
+	# set map extent
+	central_longitude = (lon_range[1] - lon_range[0]) // 2
+
+	fig = plt.figure(figsize=(25,10))
+	proj = ccrs.PlateCarree(central_longitude=central_longitude)
+	ax = plt.axes(projection=proj)
+
+	image_extent = [lon_range[0], lon_range[1], lat_range[0], lat_range[1]]
+	ax.set_extent(image_extent, crs=ccrs.PlateCarree())
+	ax.coastlines(resolution='50m', lw=0.2)
+	ax.add_feature(cf.LAND, facecolor='lightgrey', alpha=0.3)
+
+	fontdict = {'weight':'bold', 'size':14}
+	# title_fontdict = {'size':18}
+	ticksize = 12
+
+	# plot tracks in each basin
+	marker_size = 10.0
+
+	ax.scatter(detections['LON'], detections['LAT'], s=marker_size, marker='o', alpha=1.0, transform=ccrs.Geodetic(), label=f'TC Detections (#{len(detections)})')
+	ax.scatter(observations['LON'], observations['LAT'], s=marker_size, marker='o', alpha=1.0, transform=ccrs.Geodetic(), label=f'TC Observations (#{len(observations)})') if observations is not None else None
+
+	# x-axis
+	longitudes = np.arange(lon_range[0], lon_range[1]+1, 40)
+	lon_formatter = LongitudeFormatter(zero_direction_label=False)
+	ax.xaxis.set_major_formatter(lon_formatter)
+	ax.xaxis.set_major_locator(mticker.FixedLocator(longitudes-central_longitude))
+	ax.set_xticklabels(longitudes, size=ticksize)
+	ax.set_xticks(longitudes-central_longitude)
+	ax.set_xlabel('Longitude [deg]', fontdict=fontdict)
+
+	# y-axis
+	latitudes = np.arange(lat_range[0], lat_range[1]+1, 20)
+	lat_formatter = LatitudeFormatter()
+	ax.yaxis.set_major_formatter(lat_formatter)
+	ax.yaxis.set_major_locator(mticker.FixedLocator(latitudes))
+	ax.set_yticklabels(latitudes, size=ticksize)
+	ax.set_yticks(latitudes)
+	ax.set_ylabel('Latitude [deg]', fontdict=fontdict)
+
+	# ax.set_title(f"TSTORMS and ML inference on CMCC-CM3 (#{len(df)} matches)", fontdict=title_fontdict)
+
+	# gridlines
+	gl = ax.gridlines(crs=proj, draw_labels=False, dms=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+	gl.xlocator = mticker.FixedLocator(longitudes-central_longitude)
+	gl.ylocator = mticker.FixedLocator(latitudes)
+	gl.xlines = True
+	gl.ylines = True
+
+	box = ax.get_position()
+	ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+	ax.legend(loc='upper left', markerscale=2., edgecolor='black', framealpha=1, ncol=4, fontsize=14, bbox_to_anchor=(0.29,-0.11))
+
+	if outfile:
+		plt.savefig(f'{outfile}', dpi=300, bbox_inches='tight')
+	plt.show()
+
+
+def plot_tracks(
+        det_tracks:pd.DataFrame,
+        obs_tracks:pd.DataFrame,
+        lat_range:tuple[int,int],
+        lon_range:tuple[int,int],
+        title:str="",
+        outfile=None,
+    ):
     # set map extent
-    central_longitude = (lon_range[1] - lon_range[0])
+    central_longitude = (lon_range[1] - lon_range[0]) // 2
 
     fig = plt.figure(figsize=(25,10))
     proj = ccrs.PlateCarree(central_longitude=central_longitude)
@@ -30,7 +90,7 @@ def plot_tracks(det_tracks, obs_tracks, lat_range, lon_range, title, outfile=Non
     ax.add_feature(cf.LAND, facecolor='lightgrey', alpha=0.3)
 
     fontdict = {'weight':'bold', 'size':14}
-    title_fontdict = {'size':18}
+    # title_fontdict = {'size':18}
     ticksize = 12
     track_id_col = 'TRACK_ID' if 'TRACK_ID' in det_tracks.columns else 'track_id'
     lon_col = 'LON' if 'LON' in det_tracks.columns else 'lon'
@@ -83,16 +143,12 @@ def plot_tracks(det_tracks, obs_tracks, lat_range, lon_range, title, outfile=Non
         plt.savefig(f'{outfile}', dpi=300, bbox_inches='tight')
     plt.show()
 
-def plot_storm_track_density(transits, algo, vmin, vmax, remove_atlantic, lat_range, lon_range):
-    if remove_atlantic:
-        lon_grid, lat_grid = np.meshgrid(np.linspace(100, 270, transits.shape[1]), np.linspace(*lat_range, transits.shape[0])[::-1])
-    else:
-        lon_grid, lat_grid = np.meshgrid(np.linspace(*lon_range, transits.shape[1]), np.linspace(*lat_range, transits.shape[0])[::-1])
 
+def plot_tracks_global(det_tracks, obs_tracks, lat_range, lon_range, title, outfile=None):
     # set map extent
-    central_longitude = (lon_range[1] - lon_range[0])
+    central_longitude = (lon_range[1] - lon_range[0]) // 2
 
-    _ = plt.figure(figsize=(16,4))
+    fig = plt.figure(figsize=(25,10))
     proj = ccrs.PlateCarree(central_longitude=central_longitude)
     ax = plt.axes(projection=proj)
 
@@ -104,9 +160,22 @@ def plot_storm_track_density(transits, algo, vmin, vmax, remove_atlantic, lat_ra
     fontdict = {'weight':'bold', 'size':14}
     title_fontdict = {'size':18}
     ticksize = 12
+    track_id_col = 'TRACK_ID' if 'TRACK_ID' in det_tracks.columns else 'track_id'
+    lon_col = 'LON' if 'LON' in det_tracks.columns else 'lon'
+    lat_col = 'LAT' if 'LAT' in det_tracks.columns else 'lat'
 
-    im = ax.pcolormesh(lon_grid, lat_grid, transits, cmap='terrain', transform=ccrs.PlateCarree(), vmin=vmin, vmax=vmax)
-
+    # plot tracks in each basin
+    alpha = 0.5
+    marker_size = 10.0
+    transform = ccrs.PlateCarree()
+    plt.title(title, fontsize = 18)
+    if obs_tracks is not None:
+        for i,id in enumerate(obs_tracks[track_id_col].unique()):
+            ax.plot(obs_tracks[obs_tracks[track_id_col]==id][lon_col], obs_tracks[obs_tracks[track_id_col]==id][lat_col], alpha=0.2, transform=transform, color='blue')
+            ax.scatter(obs_tracks[obs_tracks[track_id_col]==id][lon_col], obs_tracks[obs_tracks[track_id_col]==id][lat_col], s=marker_size, marker='o', alpha=0.9, transform=transform, color='blue', label=f'Observed Tracks (#{len(obs_tracks[track_id_col].unique())})' if i==0 else None)
+    for i,id in enumerate(det_tracks[track_id_col].unique()):
+        ax.plot(det_tracks[det_tracks[track_id_col]==id][lon_col], det_tracks[det_tracks[track_id_col]==id][lat_col], alpha=0.2, transform=transform, color='red')
+        ax.scatter(det_tracks[det_tracks[track_id_col]==id][lon_col], det_tracks[det_tracks[track_id_col]==id][lat_col], s=marker_size, marker='.', alpha=0.9, transform=transform, color='red', label=f'Detected Tracks (#{len(det_tracks[track_id_col].unique())})' if i==0 else None)
     # x-axis
     longitudes = np.arange(lon_range[0], lon_range[1]+1, 40)
     lon_formatter = LongitudeFormatter(zero_direction_label=False)
@@ -125,6 +194,75 @@ def plot_storm_track_density(transits, algo, vmin, vmax, remove_atlantic, lat_ra
     ax.set_yticks(latitudes)
     ax.set_ylabel('Latitude [deg]', fontdict=fontdict)
 
+    # ax.set_title(f"TSTORMS and ML inference on CMCC-CM3 (#{len(df)} matches)", fontdict=title_fontdict)
+
+    # gridlines
+    gl = ax.gridlines(crs=proj, draw_labels=False, dms=True, linewidth=0.5, color='gray', alpha=0.5, linestyle='--')
+    gl.xlocator = mticker.FixedLocator(longitudes-central_longitude)
+    gl.ylocator = mticker.FixedLocator(latitudes)
+    gl.xlines = True
+    gl.ylines = True
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.legend(loc='upper left', markerscale=2., edgecolor='black', framealpha=1, ncol=4, fontsize=14, bbox_to_anchor=(0.29,-0.11))
+
+    if outfile: 
+        plt.savefig(f'{outfile}', dpi=300, bbox_inches='tight')
+    plt.show()
+
+
+def plot_storm_track_density(
+        transits: np.array,
+        algo: str,
+        vmin: int,
+        vmax: int,
+        lat_range: tuple,
+        lon_range: tuple,
+        cmap='terrain',
+        grid_spacing: int = 20,
+    ):
+    lon_grid, lat_grid = np.meshgrid(np.linspace(*lon_range, transits.shape[1]), np.linspace(*lat_range, transits.shape[0])[::-1])
+
+    # set map extent
+    central_longitude = (lon_range[1] - lon_range[0]) // 2
+
+    _ = plt.figure(figsize=(16,4))
+    proj = ccrs.PlateCarree(central_longitude=central_longitude)
+    ax = plt.axes(projection=proj)
+
+    image_extent = [lon_range[0], lon_range[1], lat_range[0], lat_range[1]]
+    ax.set_extent(image_extent, crs=ccrs.PlateCarree())
+    ax.coastlines(resolution='50m', lw=0.2)
+    ax.add_feature(cf.LAND, facecolor='lightgrey', alpha=0.3)
+
+    fontdict = {
+        # 'weight':'bold',
+        'size':14,
+    }
+    title_fontdict = {'size':18}
+    ticksize = 12
+
+    im = ax.pcolormesh(lon_grid, lat_grid, transits, cmap=cmap, transform=ccrs.PlateCarree(), vmin=vmin, vmax=vmax)
+
+    # x-axis
+    longitudes = np.arange(lon_range[0], lon_range[1]+1, grid_spacing)
+    lon_formatter = LongitudeFormatter(zero_direction_label=False)
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.xaxis.set_major_locator(mticker.FixedLocator(longitudes-central_longitude))
+    ax.set_xticklabels(longitudes, size=ticksize)
+    ax.set_xticks(longitudes-central_longitude)
+    ax.set_xlabel('Longitude [deg]', fontdict=fontdict)
+
+    # y-axis
+    latitudes = np.arange(lat_range[0], lat_range[1]+1, grid_spacing)
+    lat_formatter = LatitudeFormatter()
+    ax.yaxis.set_major_formatter(lat_formatter)
+    ax.yaxis.set_major_locator(mticker.FixedLocator(latitudes))
+    ax.set_yticklabels(latitudes, size=ticksize)
+    ax.set_yticks(latitudes)
+    ax.set_ylabel('Latitude [deg]', fontdict=fontdict)
+
     ax.set_title(f"Tropical Storm Track Density ({algo.upper()})", fontdict=title_fontdict)
 
     # gridlines
@@ -136,7 +274,7 @@ def plot_storm_track_density(transits, algo, vmin, vmax, remove_atlantic, lat_ra
 
     plt.colorbar(im, ax=ax)
     plt.tight_layout()
-    # plt.show()
+    # plt.show()
 
 def plot_pod_and_far(algo_results: pd.DataFrame, label, outfile = None):
     x = np.arange(len(algo_results))  # the label locations
@@ -278,5 +416,60 @@ def plot_trackers_biases_wrt_baseline(baseline, biases, tracker_names, comp1, co
         
     if outfile:
         plt.savefig(outfile, dpi=300)
+    else:
+        plt.show()
+
+
+def plot_pod_and_far_on_axis(
+        algo_results: pd.DataFrame,
+        label: str,
+        label_size=14,
+        ticks_size=12,
+        figsize=(12,6),
+        ax=None,
+        set_xlabel=False,
+        outfile=None,
+    ):
+    x = np.arange(len(algo_results))  # the label locations
+    width = 0.4  # the width of the bars
+    multiplier = 0
+
+    base_ax = ax
+    if base_ax is None:
+        fig, ax = plt.subplots(layout='constrained', figsize=figsize)
+
+    # add horizontal mean
+    ax.hlines(y=algo_results['pod'].mean(), xmin=-0.3, xmax=4.65, zorder=0, color='tab:blue', label='Average POD', linestyles='dashed')
+    ax.hlines(y=algo_results['far'].mean(), xmin=-0.3, xmax=4.65, zorder=0, color='tab:red', label='Average FAR', linestyles='dashed')
+
+    offset = width * multiplier
+    rects = ax.bar(x + offset, np.round(algo_results['pod'],2), width, label=f'POD' + label, color='tab:blue')
+    ax.bar_label(rects, padding=3)
+    multiplier += 1
+
+    offset = width * multiplier
+    rects = ax.bar(x + offset, np.round(algo_results['far'],2), width, label=f'FAR' + label, color='tab:red')
+    ax.bar_label(rects, padding=3)
+    multiplier += 1
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_ylabel('Score', size=label_size)
+    ax.set_ylim(0, 100)
+
+    if not set_xlabel:
+        # add the x labels
+        # ax.set_xlabel('TC trackers', size=label_size)
+        ax.set_xticks(x + width/2, algo_results['algo'], fontsize=ticks_size)
+    else:
+        # if base_ax is None:
+        # add the x labels
+        ax.set_xlabel('TC trackers', size=label_size)
+        ax.set_xticks(x + width/2, algo_results['algo'], fontsize=ticks_size)
+    plt.tight_layout()
+    if base_ax is not None:
+        return
+
+    if outfile:
+        plt.savefig(outfile, dpi=300, bbox_inches='tight')
     else:
         plt.show()

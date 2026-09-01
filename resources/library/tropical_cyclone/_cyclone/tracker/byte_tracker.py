@@ -1,16 +1,16 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# 
-# BYTE algorithm, taken and adapted from
-# https://github.com/FoundationVision/ByteTrack/tree/main
-# 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+import torch.nn.functional as F
+from collections import deque
+import os.path as osp
+import pandas as pd
+import numpy as np
+import torch
+import copy
+import os
 
 from tropical_cyclone._cyclone.tracker.basetrack import BaseTrack, TrackState
 from tropical_cyclone._cyclone.tracker.kalman_filter import KalmanFilter
 from tropical_cyclone._cyclone.tracker import matching
 
-import pandas as pd
-import numpy as np
 
 
 class STrack(BaseTrack):

@@ -1,10 +1,3 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# 
-# BYTE algorithm, taken and adapted from
-# https://github.com/FoundationVision/ByteTrack/tree/main
-# 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 import numpy as np
 from collections import OrderedDict
 
