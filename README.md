@@ -18,11 +18,24 @@
 
 ## Some Results
 
-<img src="./img/dist_msw_plot_2.jpg" width="25%">
-<img src="./img/msl_gafilo_john.png" width="74%">
-
-<img src="./img/seasonal_tc_dist_by_basin.jpg" width="44%">
-<img src="./img/interannual_variability_by_basin.jpg" width="53%">
+<table>
+  <tr>
+    <td width="25%">
+      <img src="./img/dist_msw_plot_2.jpg" width="100%" alt="Distance MSW Plot">
+    </td>
+    <td width="74%">
+      <img src="./img/msl_gafilo_john.png" width="100%" alt="TC Gafilo and TC John">
+    </td>
+  </tr>
+  <tr>
+    <td width="44%">
+      <img src="./img/seasonal_tc_dist_by_basin.jpg" width="100%" alt="Seasonal TC Distribution">
+    </td>
+    <td width="53%">
+      <img src="./img/interannual_variability_by_basin.jpg" width="100%" alt="Interannual Variability by basin">
+    </td>
+  </tr>
+</table>
 
 ## Overview
 
@@ -272,7 +285,15 @@ The BYTE tracking implementation is adapted from the ByteTrack algorithm and the
 
 ## Results
 
-<img src="./img/track_smoothness_boxplot.jpg" width="44%">
-<img src="./img/pod_far_by_basin_ibtracs.jpg" width="55%">
+<table>
+  <tr>
+    <td width="44%">
+      <img src="./img/track_smoothness_boxplot.jpg" width="100%" alt="Track Smoothness">
+    </td>
+    <td width="55%">
+      <img src="./img/pod_far_by_basin_ibtracs.jpg" width="100%" alt="POD and FAR">
+    </td>
+  </tr>
+</table>
 
 <img src="./img/tp_and_fa_detail.png" width="100%">
