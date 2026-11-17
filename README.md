@@ -27,6 +27,8 @@
       <img src="./img/msl_gafilo_john.png" width="100%" alt="TC Gafilo and TC John">
     </td>
   </tr>
+</table>
+<table>
   <tr>
     <td width="44%">
       <img src="./img/seasonal_tc_dist_by_basin.jpg" width="100%" alt="Seasonal TC Distribution">
