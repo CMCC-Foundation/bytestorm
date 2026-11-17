@@ -1,219 +1,278 @@
+<p align="center">
+    <img src="./img/bytestorm_logo_no_background.png" width="250">
+</p>
+
 # ByteStorm
 
-This is the official repository for the paper entitled: "**ByteStorm: a multi-step data-driven approach for Tropical Cyclones detection and tracking**", using deep learning and the BYTE tracking algorithm.
+**ByteStorm** is an innovative machine learning and computer vision approach designed specifically for the automated detection and tracking of tropical cyclones (TCs) using reanalysis data (such as ERA5). The DL model combines a binary classification stage, a localization stage, and a BYTE-based tracking module to produce continuous cyclone tracks from gridded weather data.
+
+- **Two-phase architecture**:
+    - **Detection and Localization**: Leverages two distinct deep learning models (one for classification and one for spatial localization) applied to patch-divided maps to identify the presence of the cyclone and accurately estimate the position of its center (the eye of the storm).
+    - **Temporal Tracking**: Utilizes the BYTE multi-object tracking algorithm to connect the detected centers over time, reconstructing the storm's entire trajectory.
+
+- **Key meteorological variables**: The model processes critical fields, i.e. *relative vorticity at 850 hPa* (RV850) and *mean sea level pressure* (MSLP).
+
+- **High performance**: Performs comparably with traditional deterministic trackers by offering good balance between the *Probability of Detection* (POD) and the *False Alarm Rate* (FAR), demonstrating strong stability even under previously unseen climatic conditions and accurately reproducing interannual and seasonal variability (compared against the IBTrACS reference dataset).
+
+- **Computational efficiency**: Represents a robust, scalable, and data-driven alternative to traditional purely dynamic forecasting and tracking models.
+
+## Some Results
+
+<img src="./img/dist_msw_plot_2.jpg" width="300">
+<img src="./img/msl_gafilo_john.png" width="800">
+
+<img src="./img/seasonal_tc_dist_by_basin.jpg" width="500">
+<img src="./img/interannual_variability_by_basin.jpg" width="650">
 
 ## Overview
 
-ByteStorm is a comprehensive framework for detecting and tracking tropical cyclones (TCs) across East- and West- North Pacific (ENP and WNP) basins basins using Machine Learning and Computer Vision techniques. The system combines two Deep Learning models for TC *classification* and *localization* with the BYTE tracking algorithm to generate continuous, accurate TC tracks over time.
+The project is built around a multi-step pipeline:
 
+- Data acquisition from ERA5-derived fields and IBTrACS metadata
+- Patch extraction for tropical-cyclone and non-cyclone events
+- Feature standardization using precomputed statistics
+- Model training for cyclone classification and eye localization
+- Inference over global or basin-based datasets
+- Track association with the BYTE tracking algorithm
 
-## Authors
+The implementation in `src/` and `resources/library/tropical_cyclone/` reflects this workflow, including training, inference, data preparation, and tracking utilities.
 
-- Davide Donno [1,2]
-- Donatello Elia [2]
-- Gabriele Accarino [2,3]
-- Marco De Carlo [2]
-- Enrico Scoccimarro [2]
-- Silvio Gualdi [2]
+## Repository structure
 
-### Affiliations
-
-1. Department of Engineering for Innovation, University of Salento, Lecce, Apulia, Italy
-
-2. Euro-Mediterranean Centre on Climate Change (CMCC)Foundation, Italy
-
-3. Department of Earth and Environmental Engineering, Columbia University, New York, NY, USA
-
-## Architecture
-
-ByteStorm follows a **VGG**-based backbone architecture with specialized adaptations for tropical cyclone tracking:
-
-- **Detection Phase**: Spatial localization using VGG networks. The TC Detection is divided into two steps: a classification phase where the input is classified as TC or no-TC, followed by a localization phase where (if present) the TC eye is localized.
-- **Tracking Phase**: BYTE-based multi-object tracking with Kalman filtering to align TC tracks over time.
-
-### Input Specifications
-
-The model processes **2D Weather Fields**, in particular: *relative vorticity at 850mb* (RV850) and *mean sea level pressure* (MSLP).
-
-## Project Structure
-
-```
+```text
 bytestorm/
-├── src/                                # Main source code (to launch)
-│   ├── training.py                     # Model training pipeline
-│   ├── inference.py                    # Inference and detection
-│   ├── build_dataset_patches.py        # Dataset building
-│   ├── era5_download.py                # Data download
-│   ├── scaler.py                       # Data standardization
-│   ├── info.py                         # Training utilities
-│   ├── train.sh                        # Training launch file
-│   └── config/                         # Configuration files for training
-│
-├── resources/library/tropical_cyclone/ # Main library source code
-│   ├── cyclone.py                      # Main TC detection and tracking module
-│   ├── dataset.py                      # PyTorch TC Dataset
-│   ├── models.py                       # Model architectures
-│   ├── era5.py                         # ERA5 download interface
-│   ├── scaling.py                      # Feature scalers
-│   ├── callbacks.py                    # Training callbacks
-│   ├── diskio.py                       # I/O operations
-│   ├── utils.py                        # Utility functions
-│   ├── sampler.py                      # Data sampling
-│   └── _cyclone/                       # Internal cyclone modules
-│       ├── augmentation.py             # Data augmentation
-│       ├── georef.py                   # Georeference utilities
-│       ├── inference.py                # Inference pipeline
-│       ├── patch.py                    # Patch extraction
-│       ├── visualize.py                # Visualization tools
-│       ├── macros.py                   # Constants and macros
-│       ├── utils.py                    # Helper functions
-│       └── tracker/                    # Tracking implementation
-│           ├── byte_tracker.py         # BYTE tracking algorithm
-│           ├── kalman_filter.py        # Kalman filter implementation
-│           ├── matching.py             # Track matching strategies
-│           └── basetrack.py            # Base tracking classes
-│
-└── notebooks/                          # Jupyter notebooks to plot the paper's figures
-    ├── BYTE-tracking-algorithm.ipynb
-    ├── comparison_table_*.ipynb
-    └── paper-figures-*.ipynb
-
+├── LICENSE
+├── README.md
+├── requirements.txt
+├── data/
+│   ├── datasets/
+│   │   ├── example_patches/
+│   │   └── ...
+│   └── ibtracs/
+├── models/
+│   ├── bytestorm_cls_NHS.toml
+│   ├── bytestorm_cls_SHS.toml
+│   ├── bytestorm_loc_NHS.toml
+│   └── bytestorm_loc_SHS.toml
+├── notebooks/
+│   └── ...
+├── resources/
+│   └── library/
+│       └── tropical_cyclone/
+│           ├── __init__.py
+│           ├── cyclone.py
+│           ├── dataset.py
+│           ├── models.py
+│           ├── scaling.py
+│           ├── callbacks.py
+│           ├── diskio.py
+│           ├── utils.py
+│           ├── sampler.py
+│           ├── era5.py
+│           └── _cyclone/
+│               ├── augmentation.py
+│               ├── georef.py
+│               ├── inference.py
+│               ├── patch.py
+│               ├── tracking.py
+│               ├── utils.py
+│               ├── visualize.py
+│               └── tracker/
+├── src/
+│   ├── training.py
+│   ├── inference.py
+│   ├── dataset_download.py
+│   ├── build_dataset_patches.py
+│   ├── scaler.py
+│   ├── info.py
+│   ├── config/
+│   │   ├── example.toml
+│   │   ├── classification.toml
+│   │   └── localization.toml
+│   ├── dataset_download.sh
+│   └── build_dataset_patches.sh
+└── img/
 ```
+
+## Methodology
+
+ByteStorm follows a two-stage detection logic:
+
+- Classification model: identifies whether a patch contains a tropical cyclone.
+- Localization model: predicts the cyclone eye position when a cyclone is present.
+
+The tracker then associates detections through time using the BYTE assignment logic from the library (`tropical_cyclone._cyclone.tracker`).
+
+The principal input drivers used by the models are:
+
+- `vo_850`: relative vorticity at 850 hPa
+- `msl`: mean sea level pressure
+
+These are used together with patch labels derived from IBTrACS-based cyclone locations and basin metadata.
+
+## Requirements
+
+The repository depends on a scientific Python stack and distributed training support. The main dependencies are declared in `requirements.txt` and include:
+
+- Python 3.8+
+- PyTorch / Lightning
+- xarray, numpy, pandas, scikit-image
+- mpi4py and OpenMPI for parallel data processing
+- netCDF4, zarr, dask, cartopy
+
+For MPI execution, OpenMPI or another compatible MPI runtime is required because the dataset-generation and training workflows rely on `mpirun`.
 
 ## Installation
 
-### Requirements
-
-- Python 3.8+
-- PyTorch/CUDA support
-- ERA5 data access (via cdsapi Copernicus Climate Change Service)
-- Dynamicopy 0.6.1
-
-### Setup
-
 ```bash
-# Clone the repository
 git clone https://github.com/CMCC-Foundation/bytestorm.git
 cd bytestorm
 
-# Install dependencies (adjust based on your environment)
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# Configure ERA5 data access
-# Follow Copernicus Climate Change Service documentation for credentials
 ```
 
-## Usage
-
-### Data Preparation
+On macOS, OpenMPI may need to be installed separately if it is not already available:
 
 ```bash
-# Download ERA5 data
-python src/era5_download.py
+brew install open-mpi
+```
 
-# Build dataset patches
-mpirun -np NUM_PROCS python -u src/build_dataset_patches.py
+## Data preparation
 
-# Compute standard scaler
+The codebase expects a project structure similar to the one defined in `src/info.py` and the example configuration files. The main steps are:
+
+### 1. Download atmospheric fields
+
+The script `src/dataset_download.py` loads weather data from the WeatherBench2-era5 source and stores per-time-step NetCDF files in `data/datasets/global`.
+
+```bash
+mpirun -np 4 python src/dataset_download.py
+```
+
+### 2. Build patch datasets
+
+`src/build_dataset_patches.py` converts global gridded fields into localized training and validation patches. It expects a basin code such as `EP` or `WP`.
+
+```bash
+mpirun -np 4 python src/build_dataset_patches.py EP
+```
+
+The dataset writer generates patch directories under a structure similar to:
+
+```text
+data/datasets/patches/{BASIN}/train
+data/datasets/patches/{BASIN}/valid
+```
+
+### 3. Compute scaling statistics
+
+The `src/scaler.py` script computes mean and standard deviation from the training patches and writes them to NetCDF files in `data/datasets/patches/`.
+
+```bash
 python src/scaler.py
 ```
 
-### Training
+This is consistent with the example configuration files, which reference files such as:
+
+- `data/datasets/example_patches/mean_1980_2009.nc`
+- `data/datasets/example_patches/std_1980_2009.nc`
+
+## Training
+
+The training entry point is `src/training.py`. It reads a TOML configuration file and starts a Lightning trainer.
+
+The supported CLI arguments are:
+
+- `-c` / `--config`: path to the configuration file
+- `-n` / `--num_nodes`: number of nodes
+- `-d` / `--devices`: number of devices per node
+
+Example using the small sample configuration:
 
 ```bash
-# NUM_PROCS = GPUS_PER_NODE * NUM_NODES
-
-# Train localization model
-mpirun -np NUM_PROCS python src/training.py --config src/config/config_localization_model.toml --devices GPUS_PER_NODE --num_nodes NUM_NODES
-
-# Train classification model
-mpirun -np NUM_PROCS python src/training.py --config src/config/config_classification_model.toml --devices GPUS_PER_NODE --num_nodes NUM_NODES
+mpirun -np 1 python src/training.py -c src/config/example.toml -n 1 -d 1
 ```
 
-A very basic Training Example is provided in the `src/config` folder and can be launched on 1 CPU, using the following command:
+A production-style configuration is available in:
+
+- `src/config/classification.toml`
+- `src/config/localization.toml`
+
+The example configuration uses the sample zarr patches shipped in `data/datasets/example_patches/`, which allows a lightweight local test run without requiring a full training dataset.
+
+## Model configuration examples
+
+The TOML files define the model, loss, optimizer, and training hyperparameters. For example:
+
+- classification: `classify = true`
+- localization: `classify = false`
+- drivers: `['vo_850', 'msl']`
+- target: `['patch_cyclone']`
+
+The repository includes a VGG-based architecture defined in `resources/library/tropical_cyclone/models.py` and selected by the `model.cls` field in the config files.
+
+## Inference
+
+The inference pipeline is implemented in `src/inference.py`. It expects the following positional arguments:
+
+1. localization experiment name
+2. classification experiment name
+3. detection threshold
+4. hemisphere (`NH` or `SH`)
+
 ```bash
-cd bytestorm
-
-mpirun -np 1 python src/training.py --config src/config/example.toml --devices 1 --num_nodes 1
+python src/inference.py <EXPERIMENT_LOC> <EXPERIMENT_CLS> <THRESHOLD> <HEMISPHERE>
 ```
 
-It leverages the sample patches that we provide in zarr format, located in `data/datasets/example_patches`. 
+The script loads trained models, evaluates the test period, and writes per-year detection outputs to disk. This workflow is consistent with the global/local tracking pipeline implemented in `resources/library/tropical_cyclone/cyclone.py`.
 
-### Inference and Tracking
+## Tracking and evaluation
 
-```bash
-# Run inference pipeline
-python src/inference.py LOC_MODEL_NAME CLS_MODEL_NAME CLS_THRESHOLD 
+The library exposes tracking utilities and inference helpers under `resources/library/tropical_cyclone/`, including:
 
-# See notebooks/BYTE-tracking-algorithm.ipynb for detailed examples
-```
+- `BYTETracker`
+- detection prediction helpers
+- track filtering and evaluation metrics
+- visualization utilities for detections and tracks
 
-### Tracking Configuration
+This enables the full workflow:
 
-The BYTE tracker can be configured with:
-
-```python
-from tropical_cyclone.cyclone import BYTETracker
-
-tracker = BYTETracker(
-    track_thresh=0.5,  # Detection confidence threshold
-    track_buffer=4,    # Maximum frames to keep lost tracks
-    match_thresh=0.8,  # IoU threshold for matching
-    lats=lats,         # Latitude array
-    lons=lons,         # Longitude array
-    mot20=False,       # MOT20 evaluation mode
-    frame_rate=1,      # Time steps per second (fixed for TC data)
-)
-```
-
-## Performance Evaluation
-
-The framework includes comprehensive evaluation tools:
-
-- **POD/FAR metrics**: Probability of Detection and False Alarm Rate
-- **Track matching**: Spatial and temporal alignment with reference datasets (e.g., IBTrACS)
-- **Comparative analysis**: Performance comparison with traditional and ML-based trackers
-
-See notebooks for comparative tables and detailed performance analysis:
-- `comparison_table_between_ML_trackers.ipynb`
-- `comparison_table_between_traditional_and_ML_trackers.ipynb`
+- detect cyclone candidates
+- localize the eye
+- match detections over time
+- compute POD/FAR and other track-level metrics
 
 ## Citation
 
-If you use ByteStorm in your research, please cite:
-
-```
-ByteStorm: A Multi-Step Data-Driven Approach for Tropical Cyclone Detection and Tracking
-```
+If you use ByteStorm in your research, please cite the project accordingly.
 
 ## License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## Funding
+## Funding and acknowledgement
 
-- This work was supported in part by the **interTwin** project. interTwin has received funding from Horizon Europe under grant agreement No 101058386.
+This work received support from the interTwin project, funded by Horizon Europe under grant agreement No. 101058386.
 
-- This repository is based on the ML TC detection library available at: https://github.com/CMCC-Foundation/ml-tropical-cyclones-detection
+The repository builds upon the tropical cyclone detection library available at:
 
-## Acknowledgments
+- https://github.com/CMCC-Foundation/ml-tropical-cyclones-detection
 
-- BYTE tracking algorithm adapted from [ByteTrack](https://github.com/FoundationVision/ByteTrack)
-- ERA5 data provided by Copernicus Climate Change Service
-- IBTrACS reference data for validation
+The BYTE tracking implementation is adapted from the ByteTrack algorithm and the project also relies on ERA5 data and IBTrACS records for training and validation.
 
 ## References
 
-### Key Publications
+- BYTE: Multi-Object Tracking by Associating Every Detection Box
+- Intercomparison of four algorithms for detecting tropical cyclones using ERA5
+- Copernicus Climate Change Service - ERA5
+- International Best Track Archive for Climate Stewardship (IBTrACS)
 
-- [BYTE: Multi-Object Tracking by Associating Every Detection Box](https://arxiv.org/abs/2110.06864)
-- [Intercomparison of four algorithms for detecting tropical cyclones using ERA5](https://gmd.copernicus.org/articles/15/6759/2022/)
 
-### Data Sources
+## Results
 
-- [Copernicus Climate Change Service - ERA5](https://cds.climate.copernicus.eu/)
-- [International Best Track Archive for Climate Stewardship (IBTrACS)](https://www.ncei.noaa.gov/products/international-best-track-archive)
+<img src="./img/track_smoothness_boxplot.jpg" width="500">
+<img src="./img/pod_far_by_basin_ibtracs.jpg" width="650">
 
-## Support
-
-For issues, questions, or suggestions, please open an issue on GitHub or contact the development team.
+<img src="./img/tp_and_fa_detail.png" width="1200">
